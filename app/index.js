@@ -1,11 +1,21 @@
-import koa from "koa";
-import router from "koa-frouter";
-import path from "path";
-import errorhandler from "koa-errorhandler";
-const app = new koa();
-app.use(errorhandler());
-app.use(router(app,{
-    root: path.join(__dirname,"./router"),
-    wildcard: "_"
-}));
-app.listen(3000);
+const Koa = require('koa');
+const multer = require('koa-multer');
+const Router = require('koa-router');
+const router = new Router();
+const app = new Koa();
+const upload = multer({ dest: 'uploads/' });
+
+router.post('/uploads', upload.fields([{ name: 'file', maxCount: 1 }]), function (ctx, next) {
+    ctx.body = ctx.req.files.file[0].filename
+});
+
+const port = 3000;
+app
+    .use(router.routes())
+    .use(router.allowedMethods());
+
+app.use(require('koa-static-server')({
+    rootDir: "uploads",
+}))
+app.listen(port);
+console.log(`start at ${port}`)
